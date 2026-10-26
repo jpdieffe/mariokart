@@ -1,0 +1,38 @@
+{
+  "originalRomSha256": "2ada8919688087be60a6a48cace8f877add60c45d2e5d09e2442faa55be62a49",
+  "variants": [
+    {
+      "id": "original",
+      "path": "site/roms/enhanced-original.sfc",
+      "sha256": "cbc8235cbced81153e0b9b3019d11d240c35f48d7bf4044dd08a3bcd433720c3"
+    },
+    {
+      "id": "courtyard",
+      "path": "site/roms/enhanced-courtyard.sfc",
+      "sha256": "4ca3801f04b5341dc29308308a6bfd2c375e9b1ad4b4ee5f96ed8cd07ac54d8a"
+    },
+    {
+      "id": "junction",
+      "path": "site/roms/enhanced-junction.sfc",
+      "sha256": "eb121af1efeec0ae2cedc8aa15e6968da27faf9213868802dd3d8a0f188a8bd8"
+    }
+  ],
+  "states": [
+    {
+      "path": "site/levels/battle-courtyard.state",
+      "sha256": "0dab6dda188026563a237830e42dec5eea834b229040e82d223b655ede6dbd1a"
+    },
+    {
+      "path": "site/levels/battle-junction.state",
+      "sha256": "c9198b0b99ebca65affa7c95fb64539d7e3eaaf2e19dd9f0479c42271399ede2"
+    },
+    {
+      "path": "site/levels/battle-original.state",
+      "sha256": "89f3b2a1945970e79d62421c0267007786f03b8b8bb27e8f666c45a694b0304b"
+    },
+    {
+      "path": "site/levels/grand-prix.state",
+      "sha256": "3615e12e07553de330908739cdb6b47173f7e1ee8a2940e2e1588686dbd5ff7e"
+    }
+  ]
+}

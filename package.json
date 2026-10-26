@@ -1,0 +1,20 @@
+{
+  "name": "super-mario-kart-online",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "test:network": "node tests/network.mjs",
+    "test:mobile-host": "node tests/mobile-host.mjs",
+    "check": "node scripts/check.mjs",
+    "build:game": "python scripts/build-game.py",
+    "test:modes": "node tests/modes.mjs",
+    "test:webkit": "node tests/webkit.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "peerjs": "1.5.5"
+  }
+}

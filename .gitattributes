@@ -1,0 +1,4 @@
+*.sfc -text
+*.zip -text
+*.state -text
+*.map -text

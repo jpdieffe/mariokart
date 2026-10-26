@@ -1,0 +1,20 @@
+{
+  "name": "Jump Junction",
+  "replaces": "Battle Course 1",
+  "trackId": 22,
+  "dimensions": {
+    "tiles": 128,
+    "world": 1024
+  },
+  "originalSha256": "2ada8919688087be60a6a48cace8f877add60c45d2e5d09e2442faa55be62a49",
+  "patchedSha256": "916ec3934adb328b7e9710d37d201dc4b666434c4bc881ae08fb7b95ffc3acff",
+  "firstCompressedBytes": 518,
+  "doubleCompressedBytes": 523,
+  "originalSlotBytes": 647,
+  "romOffset": 455480,
+  "reachableTiles": 12432,
+  "itemTiles": 52,
+  "jumpTiles": 54,
+  "originalClayTiles": 8658,
+  "newClayTiles": 12262
+}

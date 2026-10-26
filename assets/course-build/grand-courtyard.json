@@ -1,0 +1,20 @@
+{
+  "name": "Grand Courtyard",
+  "replaces": "Battle Course 1",
+  "trackId": 22,
+  "dimensions": {
+    "tiles": 128,
+    "world": 1024
+  },
+  "originalSha256": "2ada8919688087be60a6a48cace8f877add60c45d2e5d09e2442faa55be62a49",
+  "patchedSha256": "7c2557e6f6c5cb99d03b9739647c1631f03a5f6023e26d8eb4514f2e7aeb796c",
+  "firstCompressedBytes": 439,
+  "doubleCompressedBytes": 443,
+  "originalSlotBytes": 647,
+  "romOffset": 455480,
+  "reachableTiles": 11842,
+  "itemTiles": 52,
+  "jumpTiles": 54,
+  "originalClayTiles": 8658,
+  "newClayTiles": 11736
+}

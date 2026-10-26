@@ -1,0 +1,8 @@
+node_modules/
+.research/
+test-results/
+.DS_Store
+
+__pycache__/
+*.pyc
+assets/course-build/*.sfc

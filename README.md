@@ -1,0 +1,52 @@
+# Super Mario Kart — Online Pit Stop
+
+[Play on GitHub Pages](https://jpdieffe.github.io/mariokart/)
+
+The original SNES Super Mario Kart runs in the host's browser. A friend joins with a two-character code and controls the original second controller over WebRTC. Both drivers exist in the same original game. Android/iPhone touch controls, keyboard, gamepads, and a separate view for each device are supported.
+
+## Play
+
+1. Select a mode and optional battle arena, then **Host a race**.
+2. Share the code or Invite link. Your friend taps **Join**.
+3. In Original game, choose **2P GAME** using B/Gas. **Race menu** offers quick starts with Mario and Luigi.
+4. Rotate phones sideways. Hold Gas while steering; Item uses weapons and Hop jumps/drifts. **Your view** crops to your own half of the native split screen.
+
+Keep the host tab visible. Tap the sound button when prompted. If an Android same-Wi-Fi connection fails, check the browser's Nearby devices / Local network permission. Help includes optional PeerServer and TURN settings for networks that block direct WebRTC. Room codes identify a room; they are not passwords. No microphone or screen-sharing permission is requested.
+
+## Modes
+
+- **Original game:** original Grand Prix, Match Race, time trials, and two-player Balloon Battle. The default original configuration uses the supplied, unchanged ROM ZIP.
+- **Battle with bots:** two human slots and four additional native CPU karts. Six-way elimination, three hits per kart, green-shell bots, and a health HUD.
+- **Co-op battle:** you and your friend versus four bots. Last surviving team wins. Friendly fire remains enabled. Bots use original movement, collisions, sprites, and shells; their targets and team rules are supplied by the host controller.
+- **Co-op Grand Prix:** the original two-player Grand Prix with six CPUs. Your combined points compete against three CPU pairs. The original podium still displays individual results; team totals appear above the game.
+
+Solo opens the same modes without a network guest; the second human slot remains available for a friend in hosted rooms. Bots occupy four CPU slots, not the second human controller. Eliminated drivers keep their last camera position; Both screens lets you watch the remaining action. The host can rematch after a battle.
+
+## Larger arenas
+
+**Grand Courtyard** and **Jump Junction** replace Battle Course 1 for that session. They provide approximately 36% and 42% more clay driving tiles, respectively, plus six native jump bars, item blocks, cover, and outer walls. They use the original 1024 × 1024 world and native jump physics. These are larger open layouts with jumps, not a new 3D engine or stacked roads. Other original courses remain available through the native menus.
+
+## Run and verify
+
+```sh
+npm ci
+npm start
+# Open http://localhost:4180
+npm run check
+npm test
+npm run build:game
+npm run test:browser
+npm run test:modes
+npm run test:network
+npm run test:mobile-host
+```
+
+The native build uses Python 3's standard library. Chrome is used by the browser tests. `test:webkit` uses Playwright WebKit; `WEBKIT_EXECUTABLE` can select an installed binary. `PHONE_HOST=1` tests the network host with a phone viewport. Set `MARIOKART_URL=https://jpdieffe.github.io/mariokart/` to run network/mode checks against deployment. Phone browser emulation is not a substitute for testing every physical device.
+
+Pushing `main` runs syntax checks, unit/build-integrity tests, and GitHub Pages deployment. Browser tests run separately because they launch actual emulation and public signaling connections.
+
+## Original game and modifications
+
+This preserves the supplied USA ROM, rather than recreating the game in JavaScript. Optional features use separate patched ROM copies and native launch snapshots. Rebuilding verifies the original SHA-256, native patch sites, compressed-map round trips, reachable spawn/item locations, and ROM checksums. `site/game-manifest.json` records the shipped variants and snapshots.
+
+[Native implementation notes](docs/native-game.md) describe the patches, addresses, limitations, and research sources. [Third-party notices](THIRD_PARTY.md) list emulator dependencies and licenses. Nintendo retains ownership of the original game and graphics; this is an unofficial project.
