@@ -24,15 +24,17 @@ try{
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth||document.documentElement.scrollHeight>innerHeight),false);
    await page.screenshot({path:`test-results/${mode}-${arena}.png`});
    if(mode==='battle-teams'){
-    // No synthetic hits: native shells must eliminate both idle humans.
-    await page.waitForFunction(()=>kart.battle.winner,{},{timeout:60000});assert.equal(await page.evaluate(()=>kart.battle.winner),'Bot team wins!');
+    // Verify real collected-item damage, then force the final hits to test both outcomes deterministically.
+    await page.waitForFunction(()=>kart.battle.racers.some(r=>r.hp<3)&&kart.battle.racers.some(r=>r.pickups>0&&r.uses>0),{},{timeout:60000});
+    await page.evaluate(()=>{for(const r of kart.battle.racers.filter(r=>r.human))while(r.hp>0){r.hitAt=-10000;kart.battle.hurt(r);}});
+    await page.waitForFunction(()=>kart.battle.winner);assert.equal(await page.evaluate(()=>kart.battle.winner),'Bot team wins!');
     const frame=await page.evaluate(()=>kart.memory.u(0x38));await page.waitForTimeout(500);assert.equal(await page.evaluate(()=>kart.memory.u(0x38)),frame);
     await page.locator('#rematch-button').click();await page.waitForFunction(()=>kart.battle.ready&&!kart.battle.winner);
     assert.deepEqual(await page.evaluate(()=>kart.battle.state().racers.map(r=>r.hp)),[3,3,3,3,3,3]);
     // Exercise the opposite result and native actor removal deterministically.
     await page.evaluate(()=>{for(const r of kart.battle.racers.filter(r=>!r.human))for(let n=0;n<3;n++){r.hitAt=-10000;kart.battle.hurt(r);}});
     await page.waitForFunction(()=>kart.battle.winner==='Your team wins!');
-    console.log('PASS: native shell damage, both team outcomes, paused finish and clean rematch.');
+    console.log('PASS: native collected-item damage, both team outcomes, paused finish and clean rematch.');
    }else{
     assert.equal(await page.evaluate(()=>new Set(kart.battle.state().racers.map(r=>r.team)).size),6);
     console.log('PASS: six-way battle with four moving native bots on Jump Junction.');

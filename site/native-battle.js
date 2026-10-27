@@ -8,9 +8,9 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const heading=(a,b)=>(Math.round(Math.atan2(b.x-a.x,a.y-b.y)*65536/(Math.PI*2))+65536)&65535;
 const angleDiff=(a,b)=>((a-b+32768)&65535)-32768;
 export class NativeBattle {
- constructor(memory,{teams=false}={}){this.m=memory;this.teams=teams;this.reset();}
+ constructor(memory,{teams=false,items}={}){this.m=memory;this.teams=teams;this.items=items;this.reset();}
  reset(){this.ready=false;this.racers=[];this.winner=null;this.frame=0;this.lastFrame=-1;this.lastNative=-1;}
- state(){return{active:this.ready,teams:this.teams,winner:this.winner,racers:this.racers.map(r=>({name:r.name,hp:r.hp,team:r.team,player:r.human?r.id+1:null,character:r.character}))};}
+ state(){return{active:this.ready,teams:this.teams,winner:this.winner,racers:this.racers.map(r=>({name:r.name,hp:r.hp,team:r.team,player:r.human?r.id+1:null,character:r.character,item:r.item===null?null:['Banana','Green shell','Red shell'][r.item]}))};}
  pos(p){return{x:this.m.u(p+0x18),y:this.m.u(p+0x1c)};}
  surface(x,y){if(x<8||y<8||x>=1016||y>=1016)return 0x80;const b=this.m.bytes();return b[0xb00+b[0x10000+(y>>3)*128+(x>>3)]];}
  driveable(x,y){const t=this.surface(x,y);return t<0x80&&!(t>=0x20&&t<=0x3f);}
@@ -45,7 +45,7 @@ export class NativeBattle {
   }
   [...SLOTS,0x1200,0x1300,0].forEach((p,i)=>m.w(0x10e+i*2,p));
   for(const p of[0x1000,0x1100]){m.w(p+0xf0,0);m.w(p+0x8c,m.u(p+0x8c)&0x7ffe);}m.w(0x10f2,0xb07b);
-  this.racers=SLOTS.map((p,id)=>({p,id,human:id<2,character:m.u(p+0x12)/2,name:NAMES[m.u(p+0x12)/2],team:this.teams?(id<2?0:1):id,hp:3,hitAt:-120,hits:0,nextShot:120+id*27,path:[],repath:0,lastPos:this.pos(p),stuck:0}));
+  this.racers=SLOTS.map((p,id)=>({p,id,human:id<2,character:m.u(p+0x12)/2,name:NAMES[m.u(p+0x12)/2],team:this.teams?(id<2?0:1):id,hp:3,hitAt:-120,hits:0,item:null,pickups:0,uses:0,nextShot:120+id*27,targetKey:null,path:[],repath:0,lastPos:this.pos(p),stuck:0}));
  }
  hurt(r){if(r.hp<=0||this.frame-r.hitAt<90)return;r.hp--;r.hitAt=this.frame;
   if(r.human){const balloons=r.id===0?[0x1800,0x1880,0x1900]:[0x1980,0x1238,0x1338];this.m.w(balloons[r.hp]+0x12,0x1000);}
@@ -56,12 +56,35 @@ export class NativeBattle {
   if(!this.ready)this.initialize();this.frame+=step;if(this.winner)return;
   for(const r of this.racers){if(r.hp<=0)continue;if(r.human){const hits=m.u(r.p+0xf0);if(hits!==r.hits){r.hits=hits;this.hurt(r);}}else{const flags=m.u(r.p+0x8c);if(flags&1){m.w(r.p+0x8c,flags&~1);this.hurt(r);}}}
   const living=this.racers.filter(r=>r.hp>0),teams=new Set(living.map(r=>r.team));if(teams.size<=1){this.winner=this.teams?(living[0]?.team===0?'Your team wins!':'Bot team wins!'):(living[0]?`${living[0].name} wins!`:'Draw');return;}
-  for(const r of this.racers){if(r.human||r.hp<=0)continue;const pos=this.pos(r.p),enemies=living.filter(t=>t.team!==r.team);enemies.sort((a,b)=>dist(pos,this.pos(a.p))-dist(pos,this.pos(b.p)));const enemy=enemies[0];if(!enemy)continue;const target=this.pos(enemy.p),direct=this.line(pos,target);
-   if(this.frame>=r.repath){r.path=direct?[]:this.route(pos,target);r.repath=this.frame+45;}
+  for(const r of this.racers){
+   if(r.human||r.hp<=0)continue;
+   const pos=this.pos(r.p);
+   if(r.item===null&&!m.u(r.p+0xf0)&&this.items.collect(pos,m.u(r.p+0x20))){
+    r.item=(m.u(0x1f26)+r.id+r.pickups)%3;r.pickups++;r.nextShot=this.frame+60;r.targetKey=null;
+   }
+   const enemies=living.filter(t=>t.team!==r.team).sort((a,b)=>dist(pos,this.pos(a.p))-dist(pos,this.pos(b.p)));
+   const enemy=enemies[0];if(!enemy)continue;
+   let target=this.pos(enemy.p),targetKey='enemy'+enemy.id,attack=r.item!==null;
+   if(!attack){
+    const boxes=this.items.blocks.filter(b=>this.items.available(b)).sort((a,b)=>dist(pos,a)-dist(pos,b));
+    const box=boxes.find(b=>this.line(pos,b)||this.route(pos,b).length);
+    if(box){target=box;targetKey='box'+box.index;}
+    else {
+     // Vacate every empty pickup, allowing its clear-area timer to run.
+     const safe=Array.from({length:1024},(_,i)=>i).filter(i=>this.grid[i]).map(i=>this.point(i)).filter(p=>this.items.blocks.every(b=>Math.abs(p.x-b.x)>40||Math.abs(p.y-b.y)>40)).sort((a,b)=>dist(pos,a)-dist(pos,b));
+     target=safe[0]||pos;targetKey='wait'+this.cell(target);
+    }
+   }
+   const direct=this.line(pos,target);
+   if(this.frame>=r.repath||r.targetKey!==targetKey){r.path=direct?[]:this.route(pos,target);r.repath=this.frame+45;r.targetKey=targetKey;}
    while(r.path.length&&dist(pos,r.path[0])<24)r.path.shift();let aim=target;if(!direct&&r.path.length){aim=r.path[0];for(let i=Math.min(r.path.length-1,4);i>0;i--)if(this.line(pos,r.path[i],11)){aim=r.path[i];break;}}
-   const h=heading(pos,aim);m.w(r.p+0xfa,h);const delta=Math.abs(angleDiff(h,m.u(r.p+0x2a)));const cap=direct&&dist(pos,target)<110?0x20:delta>0x3000?0x60:delta>0x1800?0x140:0x2b0;if(m.u(r.p+0xea)>cap)m.w(r.p+0xea,cap);
+   const h=heading(pos,aim);m.w(r.p+0xfa,h);const delta=Math.abs(angleDiff(h,m.u(r.p+0x2a)));
+   const cap=direct&&dist(pos,target)<(attack?110:28)?0x20:delta>0x3000?0x60:delta>0x1800?0x140:0x2b0;if(m.u(r.p+0xea)>cap)m.w(r.p+0xea,cap);
    if(this.frame%30<step){if(dist(pos,r.lastPos)<10)r.stuck+=30;else r.stuck=0;r.lastPos=pos;if(r.stuck>=90){m.w(r.p+0xac,0);m.w(r.p+0xa6,0);m.w(r.p+0xa8,0);m.w(r.p+0xaa,0);for(const off of[0x2a,0xa2,0xa4])m.w(r.p+off,h);r.repath=0;r.stuck=0;}}
-   const fireAngle=Math.abs(angleDiff(heading(pos,target),m.u(r.p+0x2a)));if(this.frame>=r.nextShot&&direct&&dist(pos,target)<320&&fireAngle<0x1600&&!(m.u(r.p+0xe2)&0x300)){m.w(r.p+0xf0,1);r.nextShot=this.frame+150+r.id*9;}
+   const fireAngle=Math.abs(angleDiff(heading(pos,target),m.u(r.p+0x2a)));
+   if(attack&&this.frame>=r.nextShot&&direct&&dist(pos,target)<320&&(r.item===0||fireAngle<0x1600)&&!(m.u(r.p+0xe2)&0x300)&&!m.u(0xdfc)){
+    m.w(r.p+0xf0,r.item+1);r.item=null;r.uses++;r.targetKey=null;r.nextShot=this.frame+90;
+   }
   }
  }
 }

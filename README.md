@@ -15,12 +15,14 @@ Keep the host tab visible. Tap the sound button when prompted. If an Android sam
 
 ## Modes
 
-- **Original game:** original Grand Prix, Match Race, time trials, and two-player Balloon Battle. The default original configuration uses the supplied, unchanged ROM ZIP.
-- **Battle with bots:** two human slots and four additional native CPU karts. Six-way elimination, three hits per kart, green-shell bots, and a health HUD.
+- **Original game:** original Grand Prix, Match Race, time trials, and two-player Balloon Battle. The supplied ROM ZIP is kept unchanged; runtime copies include the item-block respawn patch.
+- **Battle with bots:** two human slots and four additional native CPU karts. Six-way elimination, three hits per kart, and a health/inventory HUD. Bots start empty and must drive over an available item block. They carry one banana, green shell, or red shell, then need another pickup after using it.
 - **Co-op battle:** you and your friend versus four bots. Last surviving team wins. Friendly fire remains enabled. Bots use original movement, collisions, sprites, and shells; their targets and team rules are supplied by the host controller.
 - **Co-op Grand Prix:** the original two-player Grand Prix with six CPUs. Your combined points compete against three CPU pairs. The original podium still displays individual results; team totals appear above the game.
 
 Solo opens the same modes without a network guest; the second human slot remains available for a friend in hosted rooms. Bots occupy four CPU slots, not the second human controller. Eliminated drivers keep their last camera position; Both screens lets you watch the remaining action. The host can rematch after a battle.
+
+Used item blocks respawn after five seconds with every active kart clear of the surrounding area. Parking on or beside a block resets that timer, including bots. Respawning applies to original courses and custom arenas.
 
 ## Larger arenas
 
@@ -37,6 +39,7 @@ npm test
 npm run build:game
 npm run test:browser
 npm run test:modes
+npm run test:items
 npm run test:network
 npm run test:mobile-host
 ```
@@ -47,6 +50,6 @@ Pushing `main` runs syntax checks, unit/build-integrity tests, and GitHub Pages 
 
 ## Original game and modifications
 
-This preserves the supplied USA ROM, rather than recreating the game in JavaScript. Optional features use separate patched ROM copies and native launch snapshots. Rebuilding verifies the original SHA-256, native patch sites, compressed-map round trips, reachable spawn/item locations, and ROM checksums. `site/game-manifest.json` records the shipped variants and snapshots.
+This preserves the supplied USA ROM, rather than recreating the game in JavaScript. Features use separate patched ROM copies and native launch snapshots. Rebuilding verifies the original SHA-256, native patch sites, compressed-map round trips, reachable spawn/item locations, and ROM checksums. `site/game-manifest.json` records the shipped variants and snapshots.
 
 [Native implementation notes](docs/native-game.md) describe the patches, addresses, limitations, and research sources. [Third-party notices](THIRD_PARTY.md) list emulator dependencies and licenses. Nintendo retains ownership of the original game and graphics; this is an unofficial project.

@@ -11,7 +11,8 @@
     "check": "node scripts/check.mjs",
     "build:game": "python scripts/build-game.py",
     "test:modes": "node tests/modes.mjs",
-    "test:webkit": "node tests/webkit.mjs"
+    "test:webkit": "node tests/webkit.mjs",
+    "test:items": "node tests/items-browser.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",

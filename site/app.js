@@ -6,10 +6,12 @@ import { levels, levelData } from './levels.js';
 import {NativeMemory,teamScores} from './native-memory.js';
 import {Presentation} from './presentation.js';
 import {NativeBattle} from './native-battle.js';
+import {ItemBlocks} from './items.js';
 
 const $ = selector => document.querySelector(selector);
 const game = new Game();
 const presentation=new Presentation();
+let items=null;
 let memory=null,matchMode='classic',arena='original',battle=null,matchFinished=false,changingRace=false;
 function matchState(){
  const s=memory?.inspect();if(!s)return null;
@@ -17,7 +19,7 @@ function matchState(){
  let lines=[];
  let winner=null;
  const b=battle?.state();
- if(b?.active){lines=b.racers.map(r=>`${r.player?'P'+r.player:'CPU'} ${r.name}: ${r.hp}/3`);winner=b.winner;if(winner)lines.unshift(winner);}
+ if(b?.active){lines=b.racers.map(r=>`${r.player?'P'+r.player:'CPU'} ${r.name}: ${r.hp}/3${r.player?'':r.item?' / '+r.item:' / empty'}`);winner=b.winner;if(winner)lines.unshift(winner);}
  if(matchMode==='team-gp'&&s.mode===0&&[2,10,12].includes(s.phase))lines=teamScores(s.racers).map(t=>`${t.name}: ${t.points} pts`);
  return{mode:matchMode,racing,track:Math.min(23,s.track),lines,winner};
 }
@@ -140,7 +142,7 @@ async function launch(modeToUse, code) {
   if(mode!=='guest'){
     matchMode=$('#game-mode').value;arena=$('#arena-choice').value;
     if(matchMode==='team-gp')arena='original';
-    game.romUrl=matchMode.startsWith('battle-')||arena!=='original'?`./roms/enhanced-${arena}.sfc`:'./roms/super-mario-kart.zip';
+    game.romUrl=`./roms/enhanced-${arena}.sfc`;
   }
   if (mode === 'guest') lastJoinedCode = code;
   try {
@@ -174,7 +176,8 @@ async function launch(modeToUse, code) {
     await new Promise(resolve=>setTimeout(resolve,1600));
     for(let attempt=0;attempt<120;attempt++){try{memory=new NativeMemory(game.manager);break;}catch(e){if(!e.notReady)throw e;await new Promise(resolve=>setTimeout(resolve,250));}}
     if(!memory)throw Error('Tap Enable game sound, then reload if the game does not start.');
-    if(matchMode.startsWith('battle-'))battle=new NativeBattle(memory,{teams:matchMode==='battle-teams'});
+    items=new ItemBlocks(memory);
+    if(matchMode.startsWith('battle-'))battle=new NativeBattle(memory,{teams:matchMode==='battle-teams',items});
     if(matchMode!=='classic')await startRace(matchMode==='team-gp'?'grand-prix':`battle-${arena}`);
     if (document.hidden) game.pause(true);
   } catch (e) {
@@ -268,7 +271,7 @@ async function startRace(id){
   try {
     if(id==='original')game.manager.restart();
     else game.load(await levelData(id));
-    battle?.reset();matchFinished=false;
+    battle?.reset();items?.reset();matchFinished=false;
   } finally {changingRace=false;}
   $('#levels-dialog').close();
   if(!document.hidden)game.pause(false);
@@ -294,8 +297,8 @@ const invite = parseRoomCode(new URLSearchParams(location.hash.slice(1)).get('ro
 if (invite) { $('#room-code').value = invite; status('You have an invite. Tap Join to play as player two.'); }
 $('#view-button').onclick=()=>{presentation.mode=presentation.mode==='driver'?'full':'driver';$('#view-button').textContent=presentation.mode==='driver'?'Both screens':'Your view';};
 setInterval(()=>{if(memory&&mode!=='guest'){const data=matchState();showMatch(data);room?.send({type:'match',match:data});}},150);
-if(new URLSearchParams(location.search).has('debug'))window.kart={game,get memory(){return memory;},get room(){return room;},get match(){return matchState();},get battle(){return battle;},presentation};
+if(new URLSearchParams(location.search).has('debug'))window.kart={game,get memory(){return memory;},get room(){return room;},get match(){return matchState();},get battle(){return battle;},get items(){return items;},presentation};
 $('#rematch-button').onclick=guard(()=>startRace(`battle-${arena}`));
-function tickBattle(){if(battle&&!matchFinished&&!changingRace){battle.tick();if(battle.winner){matchFinished=true;game.pause(true);showMatch(matchState());}}requestAnimationFrame(tickBattle);}requestAnimationFrame(tickBattle);
+function tickBattle(){if(items&&!matchFinished&&!changingRace)items.tick();if(battle&&!matchFinished&&!changingRace){battle.tick();if(battle.winner){matchFinished=true;game.pause(true);showMatch(matchState());}}requestAnimationFrame(tickBattle);}requestAnimationFrame(tickBattle);
 
 $('#game-mode').onchange=()=>{$('#arena-choice').disabled=$('#game-mode').value==='team-gp';};

@@ -4,17 +4,17 @@
     {
       "id": "original",
       "path": "site/roms/enhanced-original.sfc",
-      "sha256": "cbc8235cbced81153e0b9b3019d11d240c35f48d7bf4044dd08a3bcd433720c3"
+      "sha256": "854843bd955bfc4a178767c0a08154d4a1ca1dbb041737ea9d71f888d27dd5fc"
     },
     {
       "id": "courtyard",
       "path": "site/roms/enhanced-courtyard.sfc",
-      "sha256": "4ca3801f04b5341dc29308308a6bfd2c375e9b1ad4b4ee5f96ed8cd07ac54d8a"
+      "sha256": "9990e9e0077cd1f0c63951089748e8eb9c07e1cee485279b2e6b3523e2de64b5"
     },
     {
       "id": "junction",
       "path": "site/roms/enhanced-junction.sfc",
-      "sha256": "eb121af1efeec0ae2cedc8aa15e6968da27faf9213868802dd3d8a0f188a8bd8"
+      "sha256": "0c4e6c24055110c5f454aaded6011107ce86f3204c4c9117813498dc54d6d976"
     }
   ],
   "states": [
