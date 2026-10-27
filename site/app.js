@@ -7,11 +7,12 @@ import {NativeMemory,teamScores} from './native-memory.js';
 import {Presentation} from './presentation.js';
 import {NativeBattle} from './native-battle.js';
 import {ItemBlocks} from './items.js';
+import {installTerrainFrameHook} from './native-terrain.js';
 
 const $ = selector => document.querySelector(selector);
 const game = new Game();
 const presentation=new Presentation();
-let items=null;
+let items=null,terrain=null,terrainHook=null;
 let memory=null,matchMode='classic',arena='original',battle=null,matchFinished=false,changingRace=false;
 function matchState(){
  const s=memory?.inspect();if(!s)return null;
@@ -142,6 +143,7 @@ async function launch(modeToUse, code) {
   if(mode!=='guest'){
     matchMode=$('#game-mode').value;arena=$('#arena-choice').value;
     if(matchMode==='team-gp')arena='original';
+    if(arena==='terraces')terrainHook=installTerrainFrameHook(game,error);
     game.romUrl=`./roms/enhanced-${arena}.sfc`;
   }
   if (mode === 'guest') lastJoinedCode = code;
@@ -268,14 +270,22 @@ $('#network-form').addEventListener('submit',e => {
 });
 async function startRace(id){
   controls.clear();game.pause(true);changingRace=true;
+  terrain?.deactivate();
   try {
     if(id==='original')game.manager.restart();
     else game.load(await levelData(id));
+    if(id==='battle-terraces')attachTerrain();
     battle?.reset();items?.reset();matchFinished=false;
+    if(id==='battle-terraces')terrain?.activate();
   } finally {changingRace=false;}
   $('#levels-dialog').close();
   if(!document.hidden)game.pause(false);
   status(id==='original'?'Choose your drivers and mode in the original menus.':'Ready to drive. Hold B / GAS to accelerate.','success');
+}
+function attachTerrain(){
+  if(!terrainHook||terrain)return;
+  terrain=terrainHook.attach(memory);game.stopCapture();
+  presentation.setSource(terrain.canvas,0);streamToGuest();
 }
 async function renderRaces(){
  const list=$('#checkpoint-list');list.replaceChildren();
@@ -297,8 +307,15 @@ const invite = parseRoomCode(new URLSearchParams(location.hash.slice(1)).get('ro
 if (invite) { $('#room-code').value = invite; status('You have an invite. Tap Join to play as player two.'); }
 $('#view-button').onclick=()=>{presentation.mode=presentation.mode==='driver'?'full':'driver';$('#view-button').textContent=presentation.mode==='driver'?'Both screens':'Your view';};
 setInterval(()=>{if(memory&&mode!=='guest'){const data=matchState();showMatch(data);room?.send({type:'match',match:data});}},150);
-if(new URLSearchParams(location.search).has('debug'))window.kart={game,get memory(){return memory;},get room(){return room;},get match(){return matchState();},get battle(){return battle;},get items(){return items;},presentation};
+if(new URLSearchParams(location.search).has('debug'))window.kart={game,get memory(){return memory;},get room(){return room;},get match(){return matchState();},get battle(){return battle;},get items(){return items;},get terrain(){return terrain;},presentation};
 $('#rematch-button').onclick=guard(()=>startRace(`battle-${arena}`));
-function tickBattle(){if(items&&!matchFinished&&!changingRace)items.tick();if(battle&&!matchFinished&&!changingRace){battle.tick();if(battle.winner){matchFinished=true;game.pause(true);showMatch(matchState());}}requestAnimationFrame(tickBattle);}requestAnimationFrame(tickBattle);
+function tickBattle(){
+ if(memory&&terrainHook&&!terrain&&!changingRace&&memory.u(0x36)===14&&memory.u(0x3a)===6&&memory.u(0x124)===22){
+  try{attachTerrain();}catch(e){terrainHook=null;game.pause(true);error(e);}
+ }
+ if(items&&!matchFinished&&!changingRace)items.tick();
+ if(battle&&!matchFinished&&!changingRace){battle.tick();if(battle.winner){matchFinished=true;game.pause(true);showMatch(matchState());}}
+ requestAnimationFrame(tickBattle);
+}requestAnimationFrame(tickBattle);
 
 $('#game-mode').onchange=()=>{$('#arena-choice').disabled=$('#game-mode').value==='team-gp';};

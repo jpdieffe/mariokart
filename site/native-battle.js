@@ -1,5 +1,6 @@
 // Original-ROM battle extension. Native game owns movement, collisions, sprites,
 // weapons, audio and arena. This controller supplies targets and match rules.
+import {floorHeight,TERRAIN_MARKER} from './terrain-geometry.js';
 const SLOTS=[0x1000,0x1100,0x1400,0x1500,0x1600,0x1700];
 const NAMES=['Mario','Luigi','Bowser','Peach','Donkey Kong Jr.','Koopa Troopa','Toad','Yoshi'];
 const SPEED=[32,96,64,128,192,192,224,192,176,160,144,128,112,96,80,64,35,40,48,51,43,47,57,65,35,38,43,45,22,30,36,40,6,8,10,12,14,16,20,24,12,14,16,18,22,28,32,36,4,6,8,10,12,14,18,22,2,4,6,8,10,12,14,18];
@@ -18,10 +19,10 @@ export class NativeBattle {
  cell(pos){return Math.max(0,Math.min(31,pos.y>>5))*32+Math.max(0,Math.min(31,pos.x>>5));}
  point(cell){return{x:(cell%32)*32+16,y:(cell>>5)*32+16};}
  nearest(pos){let best=-1,bestD=Infinity;for(let i=0;i<1024;i++)if(this.grid[i]){const p=this.point(i),d=(p.x-pos.x)**2+(p.y-pos.y)**2;if(d<bestD){bestD=d;best=i;}}return best;}
- line(a,b,clearance=9){const n=Math.ceil(dist(a,b)/8);for(let i=0;i<=n;i++){const t=n?i/n:0;if(!this.clear(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,clearance))return false;}return true;}
+ line(a,b,clearance=9){const n=Math.ceil(dist(a,b)/8),raised=this.m.u(0x10f4)===TERRAIN_MARKER;let h=floorHeight(a.x,a.y);for(let i=0;i<=n;i++){const t=n?i/n:0,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t,next=floorHeight(x,y);if(!this.clear(x,y,clearance)||(raised&&Math.abs(next-h)>4))return false;h=next;}return true;}
  route(from,to){const start=this.nearest(from),goal=this.nearest(to);if(start<0||goal<0)return[];if(start===goal)return[this.point(goal)];
   const queue=[start],previous=new Int16Array(1024).fill(-1);previous[start]=start;
-  for(let head=0;head<queue.length&&previous[goal]<0;head++){const at=queue[head],x=at%32,y=at>>5;for(const[dx,dy]of[[0,-1],[1,0],[0,1],[-1,0]]){const nx=x+dx,ny=y+dy,next=ny*32+nx;if(nx<0||nx>=32||ny<0||ny>=32||!this.grid[next]||previous[next]>=0)continue;previous[next]=at;queue.push(next);}}
+  for(let head=0;head<queue.length&&previous[goal]<0;head++){const at=queue[head],x=at%32,y=at>>5;for(const[dx,dy]of[[0,-1],[1,0],[0,1],[-1,0]]){const nx=x+dx,ny=y+dy,next=ny*32+nx;if(nx<0||nx>=32||ny<0||ny>=32||!this.grid[next]||previous[next]>=0)continue;if(this.m.u(0x10f4)===TERRAIN_MARKER&&!this.line(this.point(at),this.point(next)))continue;previous[next]=at;queue.push(next);}}
   if(previous[goal]<0)return[];const path=[];for(let n=goal;n!==start;n=previous[n])path.push(this.point(n));path.reverse();return path;
  }
  link(p,top,bottom){this.m.w(p+4,top);this.m.w(p+12,bottom);for(const[sentinel,off]of[[0xb0,0],[0xb4,8]]){const tail=this.m.u(sentinel+off+2),old=this.m.u(tail+off);this.m.w(sentinel+off+2,p);this.m.w(tail+off,p);this.m.w(p+off,old);this.m.w(p+off+2,tail);}}
@@ -59,6 +60,9 @@ export class NativeBattle {
   for(const r of this.racers){
    if(r.human||r.hp<=0)continue;
    const pos=this.pos(r.p);
+   // Native shells initialize over several frames using their owner's heading.
+   // Finish the throw before turning toward the next pickup on a narrow ramp.
+   if(this.frame<r.shotHoldUntil)continue;
    if(r.item===null&&!m.u(r.p+0xf0)&&this.items.collect(pos,m.u(r.p+0x20))){
     r.item=(m.u(0x1f26)+r.id+r.pickups)%3;r.pickups++;r.nextShot=this.frame+60;r.targetKey=null;
    }
@@ -84,6 +88,7 @@ export class NativeBattle {
    const fireAngle=Math.abs(angleDiff(heading(pos,target),m.u(r.p+0x2a)));
    if(attack&&this.frame>=r.nextShot&&direct&&dist(pos,target)<320&&(r.item===0||fireAngle<0x1600)&&!(m.u(r.p+0xe2)&0x300)&&!m.u(0xdfc)){
     m.w(r.p+0xf0,r.item+1);r.item=null;r.uses++;r.targetKey=null;r.nextShot=this.frame+90;
+    if(m.u(0x10f4)===TERRAIN_MARKER)r.shotHoldUntil=this.frame+12;
    }
   }
  }

@@ -1,6 +1,6 @@
 # Native implementation
 
-Original headerless USA ROM: 524,288 bytes, SHA-256 `2ada8919688087be60a6a48cace8f877add60c45d2e5d09e2442faa55be62a49`. The original ZIP is unchanged. `scripts/build-game.py` constructs runtime copies and four verified quick-start snapshots. The emulator is pinned to EmulatorJS 4.2.3 / Snes9x; do not swap core versions without regenerating and verifying snapshots and the memory locator.
+Original headerless USA ROM: 524,288 bytes, SHA-256 `2ada8919688087be60a6a48cace8f877add60c45d2e5d09e2442faa55be62a49`. The original ZIP is unchanged. `scripts/build-game.py` constructs runtime copies and five verified quick-start snapshots. The emulator is pinned to EmulatorJS 4.2.3 / Snes9x; do not swap core versions without regenerating and verifying snapshots and the memory locator.
 
 ## Multiplayer and presentation
 
@@ -39,13 +39,28 @@ The generator checks both compression stages, connected driving terrain, both sp
 
 Validation includes native jump height rising and landing, collision against outer walls, item pickup changing the original tile and awarding an item, restored snapshots in fresh browsers, actual green-shell damage, natural bot-team victory, human-team victory, rematches, original GP with eight racers, simultaneous touch steering/gas, guest controller input, video/audio, reconnects, and mobile audio activation. Team victory injection in the automated test is identified as such; collected-item damage is checked before forcing the final hits for each team outcome.
 
-## Raised terrain: outstanding native work
+## Raised Courtyard
 
-The original-ROM engine, mechanics, graphics, and audio are required. The separate JavaScript/Three.js Sky Plaza simulation did not meet that requirement and has been removed from the deployed game. `arena.html` only redirects to the native game; the rejected implementation remains in Git history.
+This is the original ROM simulation with native floor/projection hooks and an additional terrain compositor, not the withdrawn standalone Sky Plaza simulation. The original game still runs kart acceleration, steering, drift, gravity, item spawning/movement, collisions, sprites, and sound. The compositor replaces only flat BG1 with raised surfaces textured from live native VRAM and the original palette. No replacement kart models, artwork, or JavaScript driving simulation are used.
 
-Inspection of the pinned public disassembly confirms that changing a racer's jump height is not a terrain renderer. `CODE_80ACB6` supplies the original DSP-1 projection parameters, including a zero vertical coordinate at the projection origin. Native vertical movement and landing paths such as `CODE_80B21E` and `CODE_80B5EC` update/reset racer height and vertical velocity independently of the track tile map. The live racer-height word is at racer + `$20`; map bytes at `$7F0000` select ordinary 8x8 Mode-7 tiles with behavior from `$0B00`. The shipped arena generator only changes these map bytes.
+The arena is a heightfield within the original 1024 x 1024 world: ground 0, terrace 32, upper platform 56. Four ramps rise to the terrace and a fifth connects to the upper platform. Solid sides and native wall tiles protect the floor boundaries. There are no overhanging roads or tunnels. `terrain-geometry.js`, `terrain-hooks.asm`, the map generator, and the compositor geometry must agree.
 
-These findings identify separate rendering and contact/collision changes that an actual elevation extension would need. A height-only RAM adjustment would leave the road visually flat and would not establish correct raised-floor contact or weapon interaction. It is not a completed ramp implementation. Before shipping a native elevation feature, verify one ramp and platform with the original player driving code, original artwork, both native cameras, shells, items, and CPU karts. Preserve existing flat-course behavior and only then expand to a complete arena.
+The elevation marker is `$10F4=52A9`, enabled only for active Battle Course 1 in the terraces ROM. Other modes return zero floor height. The movement hook at file `$8783` calls both original position/map routines through a trampoline at `$93C0`. Small grounded floor changes follow ramps. Large upward steps restore the previous position; drops convert the floor difference into native jump height. Original gravity and landing then execute. Native camera projection `$ACCC` and ground/air object projection `$C789/$C7E4/$C82B/$E557` add the floor height to DSP-1 vertical coordinates. Collision guards at `$1979D/$197E1/$1982A` reject partners whose floors differ by more than four units and otherwise replay the original distance checks. Original airborne collision rules continue to apply; this does not introduce midair collision physics between separate floors.
+
+Native shells follow the original tile collision map and project onto the current floor, including slopes. Guardrails block side entry into raised areas. Ground shells follow the surface; this is not a new ballistic projectile simulation. Bots plan routes across adjacent floor heights and retain their firing direction long enough for the original multi-frame throw to initialize before seeking another item.
+
+`native-terrain.js` obtains the original camera parameters and live palette/tile pixels. It renders both cameras at the native 256 x 224 resolution, then combines the original sprite output using a keyed backdrop and actor-depth masks. Sprite masking uses projected actor bounds; it does not replace the ROM's sprite renderer. Foreground capture happens inside the emulator's WebGL present call, respecting its actual viewport to remove host-size-dependent letterboxing. The host streams this combined canvas plus original Web Audio. Menus and other courses restore BG1 and the original palette. Changing races preserves the same display/capture canvas. The renderer requires WebGL with fragment-depth support and fails visibly if unavailable.
+
+Native code occupies verified unused ROM ranges `$21E13..$21FFF` and `$7602B..$76300`, plus the small trampoline. `terrain_patch.py` verifies every overwritten byte and the normalized assembly source hash, then applies the checked assembled blocks and regenerates the checksum. The normal build needs only Python. To edit the assembly, install Asar 1.71 separately and run:
+
+```sh
+python scripts/assemble-terrain.py --assembler /path/to/asar
+python scripts/build-game.py
+```
+
+The assembly helper rejects writes outside explicit hook/free-space ranges. Regression tests verify that all three conditional collision branches resolve to the original RTS paths (Asar treats bare numeric branch operands as displacements). Original/courtyard/junction ROMs and states remain byte-identical to the preceding release.
+
+`test:terraces` drives all five ramps using native gas input, checks upper-floor contact, solid-side blocking, native drop/landing, independent player control, bot navigation from ground level to an upper item, original weapon damage, human pickup, anti-camping respawn, and return to eight-racer Grand Prix. Weapon tests explicitly position participants and choose a green shell to exercise native spawning/movement/collision deterministically. Network testing covers phone-sized hosting, two-player native input, combined video/audio, per-driver views, capacity and reconnect. Chrome and phone-sized WebKit were tested; this does not certify every physical phone/GPU.
 
 ## Research references
 

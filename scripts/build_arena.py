@@ -77,6 +77,19 @@ def arena(variant='courtyard'):
         for x,y,w,h in [(24,24,34,4),(24,28,4,24),(76,24,4,34),(80,24,24,4),(70,100,34,4),(100,76,4,24),(24,70,4,34),(28,100,24,4),(50,58,4,12),(74,58,4,12)]:walls(x,y,w,h)
         # Road markings are native grass patches with no invented surface type.
         for x,y in [(38,38),(86,38),(38,86),(86,86)]:fill(x,y,4,4,0)
+    elif variant=='terraces':
+        # Three floors. These walls protect the edges of the heightfield; each
+        # ramp has an opening at both ends. All art and surface types are native.
+        for x,y,w,h in [(48,48,32,2),(48,78,32,2),(48,50,2,28),(78,50,2,28),
+                         (56,48,16,2),(56,58,16,2),(56,50,2,8),(70,50,2,8),
+                         (16,60,32,1),(16,71,32,1),(80,60,32,1),(80,71,32,1),
+                         (68,16,1,32),(79,16,1,32),(68,80,1,32),(79,80,1,32),
+                         (58,60,1,12),(69,60,1,12)]:walls(x,y,w,h)
+        for x,y,w,h in [(69,48,9,2),(48,61,2,10),(78,61,2,10),(69,78,9,2),(58,58,12,2)]:fill(x,y,w,h,1)
+        for x,y in [(14,14),(112,14),(14,112),(112,112),(62,112),(50,58),(76,58),(52,74),(74,74),(60,54),(68,54)]:item(x,y)
+        # Jump bars on the two open ground lanes; ramps stay smooth to drive.
+        horizontal_jump(30,95);horizontal_jump(88,30)
+        return bytes(m)
     else:raise ValueError('Unknown arena: '+variant)
     # Native jump bars remain traversable; jumping is the original physics.
     for x,y in [(59,35),(59,92),(14,63),(105,63)]:horizontal_jump(x,y)
@@ -84,17 +97,17 @@ def arena(variant='courtyard'):
     for x,y in [(14,14),(62,14),(112,14),(14,112),(62,112),(112,112),(14,44),(112,44),(14,82),(112,82),(44,62),(82,62),(62,62)]:item(x,y)
     return bytes(m)
 
-def verify(m):
+def verify(m,variant='courtyard'):
     g=genres(2)
     assert len(m)==16384
     # Verify walkability on tile grid and reachability of all item clusters.
-    start=(64,49);q=collections.deque([start]);seen={start}
+    start=(74,118) if variant=='terraces' else (64,49);q=collections.deque([start]);seen={start}
     while q:
         x,y=q.popleft()
         for xx,yy in ((x-1,y),(x+1,y),(x,y-1),(x,y+1)):
             if not(0<=xx<128 and 0<=yy<128) or (xx,yy) in seen or g[m[yy*128+xx]]>=128:continue
             seen.add((xx,yy));q.append((xx,yy))
-    assert (64,79) in seen
+    assert ((74,10) if variant=='terraces' else (64,79)) in seen
     assert all((i%128,i//128) in seen for i,b in enumerate(m) if 0xc0<=b<=0xc3)
     assert not any(x in(0,127) or y in(0,127) for x,y in seen)
     return {'reachableTiles':len(seen),'itemTiles':sum(0xc0<=b<=0xc3 for b in m),'jumpTiles':sum(0xf4<=b<=0xf9 for b in m),'originalClayTiles':mapdata(22).count(1),'newClayTiles':m.count(1)}
@@ -102,9 +115,9 @@ def verify(m):
 def build(destination=None,variant='courtyard'):
     expected='2ada8919688087be60a6a48cace8f877add60c45d2e5d09e2442faa55be62a49'
     assert hashlib.sha256(ROM).hexdigest()==expected
-    slug='grand-courtyard' if variant=='courtyard' else 'jump-junction'
-    name='Grand Courtyard' if variant=='courtyard' else 'Jump Junction'
-    m=arena(variant);checks=verify(m)
+    slug={'courtyard':'grand-courtyard','junction':'jump-junction','terraces':'raised-courtyard'}[variant]
+    name={'courtyard':'Grand Courtyard','junction':'Jump Junction','terraces':'Raised Courtyard'}[variant]
+    m=arena(variant);checks=verify(m,variant)
     first=encode(m);packed=encode(first)
     assert len(first)<0x4000 # Native first-stage decode scratch is $7FC000.
     assert dec(dec(packed)[0])[0]==m

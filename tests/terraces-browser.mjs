@@ -1,0 +1,19 @@
+import {chromium} from '@playwright/test';import assert from 'node:assert/strict';import {mkdir} from 'node:fs/promises';import {createServer} from '../scripts/serve.mjs';
+const server=createServer(4215),browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-unsafe-swiftshader']}),errors=[];
+await mkdir('test-results',{recursive:true});
+try{
+ const p=await browser.newPage({viewport:{width:1100,height:800}});p.on('pageerror',e=>errors.push(e.message));await p.goto('http://127.0.0.1:4215/?debug');await p.locator('#game-mode').selectOption('battle-teams');await p.locator('#arena-choice').selectOption('terraces');await p.locator('#solo-button').click();await p.waitForFunction(()=>kart.battle?.ready&&kart.terrain?.frames>15,{},{timeout:90000});
+ await p.evaluate(()=>{kart.battle.tick=()=>{};for(const r of kart.battle.racers.filter(r=>!r.human)){kart.battle.unlink(r.p);kart.memory.w(r.p+0x10,0);}window.place=(x,y,h=0,heading=0)=>{const m=kart.memory;for(const[o,v]of[[0x18,x],[0x1c,y],[0x16,0],[0x1a,0],[0x1f,h*256],[0x26,0],[0x22,0],[0x24,0],[0xea,0],[0xe8,0],[0x2a,heading],[0xa2,heading],[0xa4,heading],[0xa0,h?2:0],[0xe2,h?0x8000:0]])m.w(0x1000+o,v);};});
+ const before=await p.evaluate(()=>kart.memory.inspect().racers[1]);await p.keyboard.down('KeyZ');await p.waitForFunction(()=>kart.memory.u(0x101c)<620,{},{timeout:16000});await p.keyboard.up('KeyZ');
+ console.log('RAMP1',await p.evaluate(()=>({r:kart.memory.inspect().racers[0],floor:kart.terrain.height(kart.memory.u(0x1018),kart.memory.u(0x101c))})));assert.equal(await p.evaluate(()=>kart.terrain.height(kart.memory.u(0x1018),kart.memory.u(0x101c))),32);
+ const after=await p.evaluate(()=>kart.memory.inspect().racers[1]);assert(Math.hypot(after.x-before.x,after.y-before.y)<4,JSON.stringify({before,after}));
+ await p.evaluate(()=>place(512,604));await p.keyboard.down('KeyZ');await p.waitForFunction(()=>kart.memory.u(0x101c)<456,{},{timeout:12000});await p.keyboard.up('KeyZ');assert.equal(await p.evaluate(()=>kart.terrain.height(kart.memory.u(0x1018),kart.memory.u(0x101c))),56);await p.screenshot({path:'test-results/terraces-native-top.png'});
+ for(const [x,y,heading]of[[100,528,16384],[925,528,49152],[592,100,32768]]){
+  await p.evaluate(([x,y,h])=>place(x,y,0,h),[x,y,heading]);await p.keyboard.down('KeyZ');await p.waitForFunction(()=>kart.terrain.height(kart.memory.u(0x1018),kart.memory.u(0x101c))===32,{},{timeout:16000});await p.keyboard.up('KeyZ');
+ }
+ await p.evaluate(()=>place(430,675));await p.keyboard.down('KeyZ');await p.waitForTimeout(1600);await p.keyboard.up('KeyZ');assert((await p.evaluate(()=>kart.memory.u(0x101c)))>=640,'raised sidewall must block entry');
+ // Cross a rim while airborne and retain height above the lower native floor.
+ await p.evaluate(()=>{place(405,580,18,49152);kart.memory.w(0x10ea,0x500);kart.memory.w(0x1022,0xfb00);});await p.keyboard.down('KeyZ');let max=0,min=1000;for(let i=0;i<40;i++){const r=await p.evaluate(()=>kart.memory.inspect().racers[0]);if(r.x<384){max=Math.max(max,r.height);min=Math.min(min,r.height);}await p.waitForTimeout(35);}await p.keyboard.up('KeyZ');console.log('DROP',{max,min});assert(max>15);assert.equal(min,0);
+ await p.evaluate(()=>place(592,925));await p.waitForTimeout(250);await p.screenshot({path:'test-results/terraces-native-ramp.png'});assert.deepEqual(errors,[]);console.log('PASS native Mario climbs two floors, walls block entry, dropping uses native gravity, and Luigi stays independently controlled.');
+}catch(e){for(const p of browser.contexts().flatMap(c=>c.pages())){console.error(await p.evaluate(()=>({status:document.querySelector('#status').textContent,state:window.kart?.memory?.inspect()})));await p.screenshot({path:'test-results/terraces-failure.png'});}throw e;}
+finally{await browser.close();server.close();}

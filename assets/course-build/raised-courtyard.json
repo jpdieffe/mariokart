@@ -1,0 +1,20 @@
+{
+  "name": "Raised Courtyard",
+  "replaces": "Battle Course 1",
+  "trackId": 22,
+  "dimensions": {
+    "tiles": 128,
+    "world": 1024
+  },
+  "originalSha256": "2ada8919688087be60a6a48cace8f877add60c45d2e5d09e2442faa55be62a49",
+  "patchedSha256": "3ec5f319dfc4ff70fd6916cb49b570f053050c0f26858fb4cdca0b96b4811f10",
+  "firstCompressedBytes": 395,
+  "doubleCompressedBytes": 401,
+  "originalSlotBytes": 647,
+  "romOffset": 455480,
+  "reachableTiles": 12972,
+  "itemTiles": 44,
+  "jumpTiles": 18,
+  "originalClayTiles": 8658,
+  "newClayTiles": 12910
+}

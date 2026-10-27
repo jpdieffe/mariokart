@@ -76,7 +76,7 @@ export class Game {
   pause(value) { if (this.ready) { this.release(); this.manager.toggleMainLoop(value ? 0 : 1); } }
   capture() {
     if (this.stream?.getVideoTracks()[0]?.readyState === 'live') return this.stream;
-    const canvas = this.emulator?.canvas;
+    const canvas = this.displayCanvas || this.emulator?.canvas;
     if (!canvas?.captureStream) throw new Error('This browser cannot stream the game. Try hosting in a current Chrome or Safari browser.');
     this.stream = canvas.captureStream(60);
     for (const tap of audioTaps.values()) for (const track of tap.stream.getAudioTracks()) this.stream.addTrack(track.clone());

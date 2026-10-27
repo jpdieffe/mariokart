@@ -15,6 +15,11 @@
       "id": "junction",
       "path": "site/roms/enhanced-junction.sfc",
       "sha256": "0c4e6c24055110c5f454aaded6011107ce86f3204c4c9117813498dc54d6d976"
+    },
+    {
+      "id": "terraces",
+      "path": "site/roms/enhanced-terraces.sfc",
+      "sha256": "94022e216b1d1395f09af4441510db1b9d7f2e2c38ce7875463a1ba8cb1dc02e"
     }
   ],
   "states": [
@@ -29,6 +34,10 @@
     {
       "path": "site/levels/battle-original.state",
       "sha256": "89f3b2a1945970e79d62421c0267007786f03b8b8bb27e8f666c45a694b0304b"
+    },
+    {
+      "path": "site/levels/battle-terraces.state",
+      "sha256": "c2188ad19e668acb0b4aaf8c635e77d1019dd51003e775284e91ee6828744cf3"
     },
     {
       "path": "site/levels/grand-prix.state",

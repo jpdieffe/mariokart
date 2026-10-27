@@ -16,3 +16,12 @@ test('match messages bound display data and reject malformed room input',()=>{
  const good={mode:'battle-teams',racing:true,track:22,lines:['Mario: 3/3'],winner:null};assert.ok(validMatch(good));
  for(const change of [{track:24},{track:-1},{mode:'other'},{lines:['x'.repeat(101)]},{lines:Array(9).fill('x')},{winner:{}},{racing:'yes'}])assert.ok(!validMatch({...good,...change}));
 });
+test('native elevation collision guards return to the original rejection paths',()=>{
+ const rom=read('site/roms/enhanced-terraces.sfc');
+ for(const [hook,target]of [[0x1979d,0x197e0],[0x197e1,0x19829],[0x1982a,0x19866]]){
+  assert.equal(rom[hook],0x22,'JSL elevation guard');
+  assert.equal(rom[hook+4],0xb0,'BCS original rejection path');
+  assert.equal(hook+6+rom.readInt8(hook+5),target,'branch displacement must resolve to RTS');
+  assert.equal(rom[target],0x60);
+ }
+});

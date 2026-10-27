@@ -4,7 +4,9 @@
 
 The original SNES Super Mario Kart runs in the host's browser. A friend joins with a two-character code and controls the original second controller over WebRTC. Both drivers exist in the same original game. Android/iPhone touch controls, keyboard, gamepads, and a separate view for each device are supported.
 
-The standalone Sky Plaza remake has been withdrawn: its different physics and graphics did not meet the requirement to preserve the original game engine. Its former URL redirects here. Raised driving floors and connecting ramps inside the original engine remain unfinished; the current custom ROM courses are flat layouts with native jump bars.
+**Raised Courtyard** adds a ground floor, a raised terrace, an upper platform, and five connecting ramps. The original ROM runs the karts, steering, drift, jumps, items, collisions, and sound. A terrain display extension draws the raised road using the game's own live tile artwork; the original game draws the karts and other sprites.
+
+Choose **Co-op battle** or **Battle with bots**, then **Raised Courtyard**, and host or play solo. The standalone Sky Plaza remake remains withdrawn; its old URL redirects to the original-ROM game.
 
 ## Play
 
@@ -28,6 +30,8 @@ Used item blocks respawn after five seconds with every active kart clear of the 
 
 ## Larger arenas
 
+**Raised Courtyard** uses three floor heights (0, 32, and 56 original world units). Four outer ramps connect ground level to the terrace; the central ramp leads to the upper platform. Drive up/down normally, use the original Hop button, and collect items on each floor. Solid sides and native guardrails prevent driving straight through a raised wall. Bots navigate the ramps and must collect items. Both native cameras and the guest stream include the terrain extension. These are raised floors with sloping approaches, without roads or tunnels underneath them.
+
 **Grand Courtyard** and **Jump Junction** replace Battle Course 1 for that session. They provide approximately 36% and 42% more clay driving tiles, respectively, plus six native jump bars, item blocks, cover, and outer walls. They use the original 1024 × 1024 world and native jump physics. These are larger open layouts with jumps, not a new 3D engine or stacked roads. Other original courses remain available through the native menus.
 
 ## Run and verify
@@ -42,11 +46,12 @@ npm run build:game
 npm run test:browser
 npm run test:modes
 npm run test:items
+npm run test:terraces
 npm run test:network
 npm run test:mobile-host
 ```
 
-The native build uses Python 3's standard library. Chrome is used by the browser tests. `test:webkit` uses Playwright WebKit; `WEBKIT_EXECUTABLE` can select an installed binary. `PHONE_HOST=1` tests the network host with a phone viewport. Set `MARIOKART_URL=https://jpdieffe.github.io/mariokart/` to run network/mode checks against deployment. Phone browser emulation is not a substitute for testing every physical device.
+The native build uses Python 3's standard library. Chrome is used by the browser tests. `test:webkit` uses Playwright WebKit; `WEBKIT_EXECUTABLE` can select an installed binary. `TERRACES=1 BATTLE_MODE=1` selects the raised arena for the network test; `TERRACES=1` selects it for the WebKit test. `PHONE_HOST=1` tests the network host with a phone viewport. Set `MARIOKART_URL=https://jpdieffe.github.io/mariokart/` to run network/mode checks against deployment. Phone browser emulation is not a substitute for testing every physical device.
 
 Pushing `main` runs syntax checks, unit/build-integrity tests, and GitHub Pages deployment. Browser tests run separately because they launch actual emulation and public signaling connections.
 

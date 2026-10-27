@@ -9,15 +9,19 @@ try{
  const phone={...devices['Pixel 7'],viewport:{width:844,height:390},deviceScaleFactor:1};
  const host=await browser.newPage(process.env.PHONE_HOST?phone:{viewport:{width:1280,height:850}}),guest=await browser.newPage(phone);
  for(const p of[host,guest])p.on('pageerror',e=>errors.push(e.message));
- await host.goto(base+'?debug');if(process.env.BATTLE_MODE){await host.locator('#game-mode').selectOption('battle-teams');await host.locator('#arena-choice').selectOption('junction');}await host.locator('#host-button').click();await host.waitForFunction(()=>kart.memory&&kart.room?.peer?.open,{},{timeout:90000});
+ await host.goto(base+'?debug');if(process.env.BATTLE_MODE){await host.locator('#game-mode').selectOption('battle-teams');await host.locator('#arena-choice').selectOption(process.env.TERRACES?'terraces':'junction');}await host.locator('#host-button').click();await host.waitForFunction(()=>kart.memory&&kart.room?.peer?.open,{},{timeout:90000});
  const code=await host.evaluate(()=>kart.room.code);assert.equal(code.length,2);console.log('ROOM',code);
  if(!process.env.BATTLE_MODE){await host.locator('#levels-button').click();await host.getByRole('button',{name:'Play Original Balloon Battle',exact:true}).click();}
  await host.waitForFunction(()=>kart.memory.u(0x36)===14&&kart.memory.u(0x3a)===6);
+ if(process.env.TERRACES)await host.waitForFunction(()=>kart.terrain?.frames>15);
  await guest.goto(base+'?debug#room='+code);await guest.locator('#join-button').click();await guest.waitForFunction(()=>document.querySelector('#remote-video').videoWidth>0,{},{timeout:45000});
  assert.equal(await guest.evaluate(()=>window.EJS_emulator),undefined);
  const tracks=await guest.evaluate(()=>document.querySelector('#remote-video').srcObject.getTracks().map(t=>t.kind));assert.ok(tracks.includes('audio')&&tracks.includes('video'));
  if(await guest.locator('#resume-video').isVisible())await guest.locator('#resume-video').click();
- const before=await host.evaluate(()=>kart.memory.inspect());await guest.keyboard.down('KeyZ');await guest.waitForTimeout(1300);await guest.keyboard.up('KeyZ');
+ const before=await host.evaluate(()=>kart.memory.inspect());await guest.keyboard.down('KeyZ');
+ if(process.env.TERRACES){await host.waitForFunction(()=>kart.terrain.height(kart.memory.u(0x1118),kart.memory.u(0x111c))===32,{},{timeout:18000});assert.equal(await guest.evaluate(()=>document.querySelector('#remote-video').videoWidth),256);}
+ else await guest.waitForTimeout(1300);
+ await guest.keyboard.up('KeyZ');
  const after=await host.evaluate(()=>kart.memory.inspect());assert.ok(Math.hypot(after.racers[1].x-before.racers[1].x,after.racers[1].y-before.racers[1].y)>12);if(!process.env.BATTLE_MODE)assert.ok(Math.hypot(after.racers[0].x-before.racers[0].x,after.racers[0].y-before.racers[0].y)<5);else{await guest.waitForFunction(()=>document.querySelector('#match-score').textContent.includes('CPU'));assert.equal(await guest.locator('#match-score span').count(),6);}
  await host.locator('#view-button').click();await guest.locator('#view-button').click();await guest.waitForFunction(()=>document.querySelector('#screen').classList.contains('driver-view'));
  await host.screenshot({path:'test-results/network-host.png'});await guest.screenshot({path:'test-results/network-guest.png'});

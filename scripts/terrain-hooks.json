@@ -1,0 +1,66 @@
+{
+  "assembler": "Asar 1.71",
+  "sourceSha256": "5acde5b17311f8ab75a1fe834df50cad8a950a723feb93449c4ca5cdbf42e20f",
+  "blocks": [
+    {
+      "offset": 34691,
+      "original": "209a87200d89",
+      "code": "225f60c7eaea"
+    },
+    {
+      "offset": 37824,
+      "original": "ffffffffffffff",
+      "code": "209a87200d896b"
+    },
+    {
+      "offset": 44236,
+      "original": "a900008f006000",
+      "code": "224a60c7eaeaea"
+    },
+    {
+      "offset": 51081,
+      "original": "a900008d0060",
+      "code": "222b60c7eaea"
+    },
+    {
+      "offset": 51172,
+      "original": "a900008d0060",
+      "code": "222b60c7eaea"
+    },
+    {
+      "offset": 51243,
+      "original": "8d0060641a",
+      "code": "223660c7ea"
+    },
+    {
+      "offset": 58711,
+      "original": "a900008d0060",
+      "code": "222b60c7eaea"
+    },
+    {
+      "offset": 104349,
+      "original": "b9180038f518",
+      "code": "22f860c7b03d"
+    },
+    {
+      "offset": 104417,
+      "original": "b9180038f518",
+      "code": "22f860c7b042"
+    },
+    {
+      "offset": 104490,
+      "original": "b9180038f518",
+      "code": "22f860c7b036"
+    },
+    {
+      "offset": 138771,
+      "original": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "code": "aff4107ec9a952f004a900006bbf18007ec980019053c98002b06bbf1c007ec98001907fc9800290034cce1ebf18007ec9c0019030c94002b02bbf1c007ec9e001901ec94002b01dbf18007ec9d0019014c93002b00fa9c00238ff1c007e4a4a6ba938006ba920006bc980009067bf1c007ec9e001905ec94002b059bf18007e38e98000804bc98003b04abf1c007ec9e0019041c94002b03ca9800338ff18007e802ec98000902dbf18007ec920029024bf1c007e38e980008016c98003b015bf18007ec92002900ca9800338ff1c007e4a4a4a6ba900006bffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    {
+      "offset": 483371,
+      "original": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "code": "22131ec20a0a8f0060006b4822131ec20a0a8500681865008f006000641a6bda8aeb4a18690010aa22131ec20a0a8f006000fa6badf410c9a952f00522c093806bb51848b51c4822131ec24822c0938022131ec28512a30138e512f06c301dc90500b004b4a0f061eb18751f951fa9020095a0b5e209008095e2804d49ffff1ac90500b004b4a0f040eb8512b51fc512b01ab5a0f01da512c90005b016741f742674a0b5e229ff7f95e2801d38e512951f8016a3059518850aa303951c850c7416741a7422742474ea6868686bda22131ec248bb22131ec2851268fa38e512100449ffff1ac90500b008b9180038f518186b386bffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  ]
+}
