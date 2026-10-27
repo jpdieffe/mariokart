@@ -13,7 +13,7 @@
     "test:modes": "node tests/modes.mjs",
     "test:webkit": "node tests/webkit.mjs",
     "test:items": "node tests/items-browser.mjs",
-    "test:terraces": "node tests/terraces-browser.mjs && node tests/terraces-battle.mjs"
+    "test:terraces": "node tests/terraces-browser.mjs && node tests/terraces-battle.mjs && node tests/terraces-visual.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",

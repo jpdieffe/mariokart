@@ -131,6 +131,23 @@ camera:
   jsl height
   asl
   asl
+  pha
+  lda.l $7E10F4
+  cmp.w #$52A9
+  bne .base
+  lda.b $F6,x
+  cmp.w #$FFFF
+  beq .base
+  lda.b $1F,x
+  sec
+  sbc.b $F6,x
+  bcc .base
+  lsr #6
+  clc
+  adc $01,s
+  sta $01,s
+.base
+  pla
   sta.l $006000
   plx
   rtl
@@ -141,6 +158,15 @@ move:
   jsl nativeMove
   rtl
 .active
+  ; Human +F6 is race timing storage, unused in Battle Mode. FFFF means
+  ; ordinary floor-following; a drop records the pre-drop jump offset.
+  cpx.w #$1200
+  bcs .save
+  lda.b $A0,x
+  bne .save
+  lda.w #$FFFF
+  sta.b $F6,x
+.save
   lda.b $18,x
   pha
   lda.b $1C,x
@@ -153,12 +179,26 @@ move:
   lda $01,s
   sec
   sbc $12
-  beq .done
+  bne .changed
+  jmp .done
+.changed
   bmi .up
   cmp.w #5
-  bcs .fall
+  bcs .drop
   ldy.b $A0,x
   beq .done
+  bra .fall
+.drop
+  pha
+  cpx.w #$1200
+  bcs .resumeDrop
+  lda.b $F6,x
+  cmp.w #$FFFF
+  bne .resumeDrop
+  lda.b $1F,x
+  sta.b $F6,x
+.resumeDrop
+  pla
 .fall
   xba
   clc
@@ -242,6 +282,32 @@ guard:
 .blocked
   sec
   rtl
+; Own-driver sprites use a fixed screen anchor, unlike projected world objects.
+; Subtract the camera's fall lift from their visual jump only. Physics and the
+; other camera still use the full native jump height.
+jumpTop:
+  cpx.b $C8
+  bra jumpScreen
+jumpBottom:
+  cpx.b $CA
+jumpScreen:
+  bne .original
+  lda.l $7E10F4
+  cmp.w #$52A9
+  bne .original
+  lda.b $F6,x
+  cmp.w #$FFFF
+  beq .original
+  lda.b $1F,x
+  cmp.b $F6,x
+  bcc .original
+  lda.b $F6,x
+  bra .store
+.original
+  lda.b $1F,x
+.store
+  sta.l $006000
+  rtl
 warnpc $C76301
 
 org $8093C0
@@ -281,6 +347,12 @@ org $80C7E4
   nop #2
 org $80C82B
   jsl air
+  nop
+org $80C92C
+  jsl jumpTop
+  nop
+org $80C957
+  jsl jumpBottom
   nop
 org $80E557
   jsl ground
