@@ -1,5 +1,4 @@
 import { PROTOCOL, newRoomCode, validInput, validMatch } from './protocol.js';
-import { validArenaFrame } from './arena-net.js';
 const PREFIX = 'mariokart-online-v1-';
 const networkAdvice = () => /Android/i.test(globalThis.navigator?.userAgent || '')
   ? 'In Android Settings > Apps > your browser > Permissions, allow Nearby devices / Local network, then retry. See Help for other connection options.'
@@ -17,8 +16,6 @@ export class Room {
   constructor(events = {}, settings = {}) {
     this.events = events; this.settings = settings; this.mask = 0; this.seq = 0; this.lastSeq = -1;
     this.remoteMask = 0; this.lastInput = 0; this.closed = false; this.isHost = false;
-    this.dataOnly = settings.mode === 'arena3d';
-    this.prefix = this.dataOnly ? 'mariokart-arena3d-v1-' : PREFIX;
   }
   emit(name, ...args) { this.events[name]?.(...args); }
   async open(host, code) {
@@ -31,7 +28,7 @@ export class Room {
     const attempted = new Set();
     for (let attempt = 0; ; attempt++) {
       attempted.add(this.code);
-      try { await this.reservePeer(host ? this.prefix + this.code : undefined, options); break; }
+      try { await this.reservePeer(host ? PREFIX + this.code : undefined, options); break; }
       catch (error) {
         this.peer?.destroy();
         if (this.closed || !host || error.type !== 'unavailable-id') throw error;
@@ -51,7 +48,7 @@ export class Room {
       this.attach(connection);
     });
     this.peer.on('call', call => {
-      if (this.dataOnly || this.isHost || call.peer !== this.prefix + this.code || !this.connection?.open || call.metadata?.protocol !== PROTOCOL) { call.close(); return; }
+      if (this.isHost || call.peer !== PREFIX + this.code || !this.connection?.open || call.metadata?.protocol !== PROTOCOL) { call.close(); return; }
       this.call?.close(); this.call = call;
       call.on('stream', stream => { this.mediaReceived=true; clearTimeout(this.mediaTimeout); this.emit('stream', stream); });
       call.on('error', error => this.emit('error', messageFor(error)));
@@ -62,7 +59,7 @@ export class Room {
       if (!this.closed) { this.emit('status', 'Room service disconnected; reconnecting…'); this.peer.reconnect(); }
     });
     this.peer.on('close', () => { if (!this.closed) this.emit('error','The room closed. Create or join a new room.'); });
-    if (!host) this.attach(this.peer.connect(this.prefix + code, {reliable:true,serialization:'json',metadata:{protocol:PROTOCOL}}));
+    if (!host) this.attach(this.peer.connect(PREFIX + code, {reliable:true,serialization:'json',metadata:{protocol:PROTOCOL}}));
     this.timer = setInterval(() => {
       if (!this.isHost && this.accepted) this.send({type:'input',mask:document.hidden ? 0 : this.mask,seq:this.seq++});
       if (this.isHost && this.remoteMask && performance.now() - this.lastInput > 600) { this.remoteMask = 0; this.emit('input',0); }
@@ -117,11 +114,10 @@ export class Room {
       if (data.type === 'welcome' && !this.isHost && !this.accepted && data.protocol === PROTOCOL) {
         this.accepted = true; clearTimeout(this.connectTimeout);
         this.emit('connected');
-        if(!this.dataOnly&&!this.mediaReceived)this.mediaTimeout = setTimeout(() => this.emit('error','Connected, but the game stream has not arrived. Ask the host to keep the game visible, or try a different network.'), 90000);
+        if(!this.mediaReceived)this.mediaTimeout = setTimeout(() => this.emit('error','Connected, but the game stream has not arrived. Ask the host to keep the game visible, or try a different network.'), 90000);
         return;
       }
       if (!this.accepted) return;
-      if(this.dataOnly&&!this.isHost&&data.type==='arena'&&validArenaFrame(data.frame)){this.emit('arena',data.frame);return;}
       if(!this.isHost&&data.type==='match'&&validMatch(data.match)){this.emit('match',data.match);return;}
       if (this.isHost && validInput(data) && data.seq > this.lastSeq) {
         this.lastSeq = data.seq; this.lastInput = performance.now(); this.remoteMask = data.mask; this.emit('input',data.mask);

@@ -2,13 +2,9 @@
 
 [Play on GitHub Pages](https://jpdieffe.github.io/mariokart/)
 
-**New: [Sky Plaza — custom 3D arena](https://jpdieffe.github.io/mariokart/arena.html).** This separate game has three driving floors (ground, a 7-metre terrace, and a 14-metre sky deck), five connecting ramps, launch pads, and real falling/jumping physics. The original-ROM game remains at the main URL.
-
-Sky Plaza supports two-player rooms with independent cameras, four bots, co-op teams or free-for-all, and three-balloon elimination. The host runs the shared simulation; both devices render their own 3D view from bounded state updates over the peer connection. Its room namespace is separate from original-game rooms; share its **Invite** link. A joining player drops in as Luigi. Reconnecting preserves the battle and remaining balloons. Keep the host tab visible.
-
-All drivers, including bots, start empty and collect a single green shell, red shell, banana, or boost from an item box. Boxes respawn only after five uninterrupted seconds with all karts clear. Ramps and solid deck walls affect both karts and projectiles; hits cannot cross floors. Co-op has no friendly fire. Eliminated drivers spectate; the host can restart. **Arena view** shows the complete layout. Touch controls, keyboard, and standard gamepads work; phones are best sideways. This mode uses new low-poly graphics and its own handling, not the SNES renderer or original track physics.
-
 The original SNES Super Mario Kart runs in the host's browser. A friend joins with a two-character code and controls the original second controller over WebRTC. Both drivers exist in the same original game. Android/iPhone touch controls, keyboard, gamepads, and a separate view for each device are supported.
+
+The standalone Sky Plaza remake has been withdrawn: its different physics and graphics did not meet the requirement to preserve the original game engine. Its former URL redirects here. Raised driving floors and connecting ramps inside the original engine remain unfinished; the current custom ROM courses are flat layouts with native jump bars.
 
 ## Play
 
@@ -48,7 +44,6 @@ npm run test:modes
 npm run test:items
 npm run test:network
 npm run test:mobile-host
-npm run test:arena
 ```
 
 The native build uses Python 3's standard library. Chrome is used by the browser tests. `test:webkit` uses Playwright WebKit; `WEBKIT_EXECUTABLE` can select an installed binary. `PHONE_HOST=1` tests the network host with a phone viewport. Set `MARIOKART_URL=https://jpdieffe.github.io/mariokart/` to run network/mode checks against deployment. Phone browser emulation is not a substitute for testing every physical device.

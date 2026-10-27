@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {EventEmitter} from 'node:events';
 import {Room} from '../site/room.js';
 import {PROTOCOL} from '../site/protocol.js';
-import {ArenaWorld} from '../site/arena-world.js';
 
 class Connection extends EventEmitter {
   constructor(){super();this.open=true;this.peerConnection=new EventTarget();this.sent=[];}
@@ -48,16 +47,5 @@ test('a stream arriving before welcome does not arm a false missing-video timeou
   room.peer.emit('call',call);call.emit('stream',{});
   connection.emit('data',{type:'welcome',protocol:PROTOCOL});
   assert.equal(room.accepted,true);assert.equal(room.mediaTimeout,undefined);
-  t.mock.timers.tick(91000);assert.deepEqual(errors,[]);
-});
-
-test('3D rooms accept bounded host state without expecting a media stream',async t=>{
-  environment(t);const frames=[],errors=[];const room=new Room({arena:s=>frames.push(s),error:e=>errors.push(e)},{mode:'arena3d'});t.after(()=>room.close());
-  await room.open(false,'AB');assert.notEqual(room.prefix,'mariokart-online-v1-');const c=room.connection;
-  c.emit('data',{type:'arena',frame:new ArenaWorld().snapshot()});assert.equal(frames.length,0);
-  c.emit('data',{type:'welcome',protocol:PROTOCOL});assert.equal(room.mediaTimeout,undefined);
-  c.emit('data',{type:'arena',frame:new ArenaWorld().snapshot()});assert.equal(frames.length,1);
-  c.emit('data',{type:'arena',frame:{karts:[]}});assert.equal(frames.length,1);
-  room.isHost=true;c.emit('data',{type:'arena',frame:new ArenaWorld().snapshot()});assert.equal(frames.length,1,'guests cannot replace host simulation');
   t.mock.timers.tick(91000);assert.deepEqual(errors,[]);
 });

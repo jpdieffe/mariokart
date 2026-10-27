@@ -39,6 +39,14 @@ The generator checks both compression stages, connected driving terrain, both sp
 
 Validation includes native jump height rising and landing, collision against outer walls, item pickup changing the original tile and awarding an item, restored snapshots in fresh browsers, actual green-shell damage, natural bot-team victory, human-team victory, rematches, original GP with eight racers, simultaneous touch steering/gas, guest controller input, video/audio, reconnects, and mobile audio activation. Team victory injection in the automated test is identified as such; collected-item damage is checked before forcing the final hits for each team outcome.
 
+## Raised terrain: outstanding native work
+
+The original-ROM engine, mechanics, graphics, and audio are required. The separate JavaScript/Three.js Sky Plaza simulation did not meet that requirement and has been removed from the deployed game. `arena.html` only redirects to the native game; the rejected implementation remains in Git history.
+
+Inspection of the pinned public disassembly confirms that changing a racer's jump height is not a terrain renderer. `CODE_80ACB6` supplies the original DSP-1 projection parameters, including a zero vertical coordinate at the projection origin. Native vertical movement and landing paths such as `CODE_80B21E` and `CODE_80B5EC` update/reset racer height and vertical velocity independently of the track tile map. The live racer-height word is at racer + `$20`; map bytes at `$7F0000` select ordinary 8x8 Mode-7 tiles with behavior from `$0B00`. The shipped arena generator only changes these map bytes.
+
+These findings identify separate rendering and contact/collision changes that an actual elevation extension would need. A height-only RAM adjustment would leave the road visually flat and would not establish correct raised-floor contact or weapon interaction. It is not a completed ramp implementation. Before shipping a native elevation feature, verify one ramp and platform with the original player driving code, original artwork, both native cameras, shells, items, and CPU karts. Preserve existing flat-course behavior and only then expand to a complete arena.
+
 ## Research references
 
 - [Yoshifanatic1's public Super Mario Kart disassembly](https://github.com/Yoshifanatic1/Super-Mario-Kart-Disassembly), commit `f5c5c21f263172f20936893fa339ae0819094954`, GPL-3.0. Used to understand native routines; no leaked Nintendo source was used.

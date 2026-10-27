@@ -2,4 +2,3 @@
 *.zip -text
 *.state -text
 *.map -text
-site/vendor/three/* text eol=lf
